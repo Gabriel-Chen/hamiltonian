@@ -19,10 +19,6 @@
 
   <link href="{{ 'feed.xml' | absolute_url }}" type="application/rss+xml" rel="alternate" title="{{ site.name }} Last 10 blog posts" />
 
-  {% if site.local_fonts %}
-    {% asset fonts.css %}
-  {% endif %}
-
   {% if site.theme_toggle == true %}
 
     {% if site.blog_theme == "light" %}
