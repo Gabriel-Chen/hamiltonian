@@ -3,7 +3,7 @@ layout: post
 title: The Rise and Fall of a Pandemic Driven Market
 date: 2021-06-20
 description: During the year of 2020, we have experienced several extreme situations within our market. Here, let us talk about the market raise, market down, and the craziness of Bitcoin.
-tags: [market]
+tags: [article, market]
 author: Gabriel Chen
 ---
 
