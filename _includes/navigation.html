@@ -1,9 +1,9 @@
 <nav class="header-nav {% if site.scrollappear_enabled %}scrollappear{% endif %}">
-  <a href="https://gabrielchen.com/hamiltonian/" class="header-logo" title="Hamiltonian">Hamiltonian</a>
+  <a href="{{ '/' | relative_url }}" class="header-logo" title="{{ site.name }}">{{ site.name }}</a>
   <ul class="header-links">
     {% if site.about_enabled == true %}
       <li>
-        <a href="https://gabrielchen.com/about/">
+        <a href="{{ 'about' | relative_url }}" title="About me">
           {% include svg-icon.html icon="about" %}
         </a>
       </li>

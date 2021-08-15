@@ -3,7 +3,7 @@
 blog_theme: light # Or use dark
 name: Hamiltonian
 paginate: 25
-url: http://gabrielchen.com/hamiltonian/
+url: /hamiltonian/
 
 
 # Optional settings
