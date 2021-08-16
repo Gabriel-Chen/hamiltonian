@@ -1,0 +1,4 @@
+---
+slug: privacy
+name: Privacy
+---
