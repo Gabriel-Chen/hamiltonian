@@ -159,3 +159,24 @@ img {
   color: $white;
   background-color: $gray-darkest;
 }
+
+
+/* -----
+SVG Icons - svgicons.sparkk.fr
+----- */
+
+.svg-icon {
+  width: 1em;
+  height: 1em;
+}
+
+.svg-icon path,
+.svg-icon polygon,
+.svg-icon rect {
+  fill: #615b5b;
+}
+
+.svg-icon circle {
+  stroke: #615b5b;
+  stroke-width: 1;
+}
