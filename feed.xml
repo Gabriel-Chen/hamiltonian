@@ -12,6 +12,7 @@
         <title>{{ post.title | xml_escape }}</title>
         <description>{{ post.description | xml_escape }}</description>
         <pubDate>{{ post.date | date_to_rfc822 }}</pubDate>
+        <description>{{ post.content | xml_escape }}</description>
         <link>{{ post.url }}</link>
         <guid isPermaLink="true">{{ post.url }}</guid>
       </item>
