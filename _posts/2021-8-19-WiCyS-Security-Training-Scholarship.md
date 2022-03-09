@@ -3,7 +3,7 @@ layout: post
 title: WiCyS Security Training Scholarship
 date: 2021-08-19
 description: Year 2021 is a year under pandemic, but there are still many good things happening around me. This year, I received a cybersecurity scholarship from WiCyS, and I would like to talk about my experience as this program goes.
-tags: [experience, cybersecurity]
+tags: [experience, , scholarship, cybersecurity]
 author: Gabriel Chen
 ---
 

@@ -1,0 +1,4 @@
+---
+slug: scholarship
+name: Scholarship
+---
