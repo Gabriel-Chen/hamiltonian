@@ -2,7 +2,7 @@
 layout: post
 title: Experiment of Incorporating Huel/Soylent into Daily Intakes
 date: 2021-9-12
-description: 
+description: Years ago from college time, I have always been wanting to do a diet experiment with Soylent. However, I didn’t really have the chance to risk my busy school life for it. After graduating from my college, the COVID hit right at the time. Under the stay-at-home situation, I finally have the time and opportunity to safely experiment my long overdue Soylent diet.
 tags: [experience, nutrition, experiment]
 ---
 
