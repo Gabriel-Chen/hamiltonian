@@ -59,6 +59,10 @@ At the end of year 2021, I passed the GFACT certificate exam and am ready for th
 
 This stage is the major stage for this whole training program, and GSEC certification is essential for security related research or jobs. 
 
+After getting seven books for this certificate and learning the exam lasts four hours, I realized why this course is one of the hardest test in SANS training. The first thing I did is making a detailed plan with how much work I have to finish for each week in order to get everything done on time. Roughly speaking, we only have one and a half month to finish this certificate up. This is an extremely tight schedule. In the mean time, I have work, school, and life going on. 
+
+The major thing I did during this stage is reading and understanding the book. Question for GSEC are more comprehensive than GFACT, and one has to really understand the concept to pass the certificate. Besides books, there is a lab portion for GSEC, which means I have to do a live exploitation through the exam. For the lab, there is a whole book provided and two virtual machine images for us to practice.
+
 ---
 
 
