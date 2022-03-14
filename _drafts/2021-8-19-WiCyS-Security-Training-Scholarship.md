@@ -61,7 +61,15 @@ This stage is the major stage for this whole training program, and GSEC certific
 
 After getting seven books for this certificate and learning the exam lasts four hours, I realized why this course is one of the hardest test in SANS training. The first thing I did is making a detailed plan with how much work I have to finish for each week in order to get everything done on time. Roughly speaking, we only have one and a half month to finish this certificate up. This is an extremely tight schedule. In the mean time, I have work, school, and life going on. 
 
-The major thing I did during this stage is reading and understanding the book. Question for GSEC are more comprehensive than GFACT, and one has to really understand the concept to pass the certificate. Besides books, there is a lab portion for GSEC, which means I have to do a live exploitation through the exam. For the lab, there is a whole book provided and two virtual machine images for us to practice.
+The major thing I did during this stage is reading and understanding the book. Question for GSEC are much more comprehensive than GFACT, and one has to really understand the concept to pass the certificate. Besides books, there is a lab portion for GSEC, which means the test taker has to do a live exploitation through the exam. For the lab, there is a whole book provided and two virtual machine images for us to practice.
+
+Overall, the pace for this stage is quite fast. We only got roughly a month and a half to prepare and finish the certificate attempt. Luckily, each of us got one extension throughout the whole scholarship, so many of us used that extension on GSEC. However, after a two months of intensive study, I decided to finish this up without using the extension. I am very glad that I passed the GSEC  on time.
+
+The whole exam lasts four hours and is very hard to manage the time if you don't have a time table. Usually, my exams last at most for two hours, and this is the first time for me taking a four hours exam. I underestimated how hard it is to manage such a long time slot and ended up running out of the time. This, a tame table to reference how much time is left on a certain question is extremely needed.
+
+## Stage VI - SANS 530 + GDSA Certificate 
+
+
 
 ---
 
