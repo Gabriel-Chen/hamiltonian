@@ -65,11 +65,11 @@ The major thing I did during this stage is reading and understanding the book. Q
 
 Overall, the pace for this stage is quite fast. We only got roughly a month and a half to prepare and finish the certificate attempt. Luckily, each of us got one extension throughout the whole scholarship, so many of us used that extension on GSEC. However, after a two months of intensive study, I decided to finish this up without using the extension. I am very glad that I passed the GSEC  on time.
 
-The whole exam lasts four hours and is very hard to manage the time if you don't have a time table. Usually, my exams last at most for two hours, and this is the first time for me taking a four hours exam. I underestimated how hard it is to manage such a long time slot and ended up running out of the time. This, a tame table to reference how much time is left on a certain question is extremely needed.
+The whole exam lasts for four hours and is very hard to manage the time if you don't have a time table. Usually, my exams last at most for two hours, and this is the first time for me taking a four hours exam. I underestimated how hard it is to manage such a long time slot and ended up running out of the time. This, a tame table to reference how much time is left on a certain question is extremely needed. 
 
 ## Stage VI - SANS 530 + GDSA Certificate 
 
-
+The last stage of this scholarship is originally GCIH + SANS 504, but I asked for SANS 530 + GDSA to better fit my career goal. The GCIH is cerfified incident handler and is majorly for members within a response team. For myself, since my focus is heavily in defensible architectural design and security engineering, being a member of incident response team does not align with my future goal. 
 
 ---
 
