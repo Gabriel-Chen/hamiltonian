@@ -1,21 +1,414 @@
----
----
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="https://www.w3.org/2005/Atom" xmlns:dc="https://purl.org/dc/elements/1.1/">
   <channel>
-    <title>{{ site.name | xml_escape }}</title>
-    <description>{% if site.description %}{{ site.description | xml_escape }}{% endif %}</description>
-    <link>{{ site.url }}</link>
-    <atom:link href="{{ page.path }}" rel="self" type="application/rss+xml" />
-    {% for post in site.posts limit:10 %}
+    <title>Hamiltonian</title>
+    <description></description>
+    <link>https://gabrielchen.com/hamiltonian/</link>
+    <atom:link href="feed.xml" rel="self" type="application/rss+xml" />
+    
       <item>
-        <title>{{ post.title | xml_escape }}</title>
-        <description>{{ post.description | xml_escape }}</description>
-        <pubDate>{{ post.date | date_to_rfc822 }}</pubDate>
-        <content>{{ post.content | xml_escape }}</content>
-        <link>{{ post.url }}</link>
-        <guid isPermaLink="true">{{ post.url }}</guid>
+        <title>High Performance Programming with MPI and OpenMP</title>
+        <description>Parallel programming and high performance programming has been the way people trying to enhance computer performance after the development of hardware slows down. The major two systems researchers have been using are MPI and OpenMP. This spring, I had the chance to explore both of them and worked on a research project to perform a histogramming sort among distributed memories.</description>
+        <pubDate>Wed, 04 May 2022 00:00:00 -0700</pubDate>
+        <content>&lt;p&gt;During the past six months, I have been learning high performance programming and parallel programming with MPI and OpenMP. It is always a fascinating process whenever I have the chance to learn something new. I arrived in this course with barely any knowledge about parallel programming, and comes out with the ability to do research on high performance programming analysis. This might be the beauty of going to schools, you never know what you don’t know until you know.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-raise-of-distributed-memory&quot;&gt;The Raise of Distributed Memory&lt;/h2&gt;
+
+&lt;p&gt;Among recent years, distributed memory has evolved quickly as the development of hardware is reaching its own bottleneck. People need more powerful and faster computers, but no one wants a computer with bigger size than they have already had. As smaller and smaller hardware components go, there it comes to a limit where nothing can be ever smaller to be put together without burning the whole chip down. Therefore, researchers start finding another angle to improve the overall performance. The question is, how can we enhance the performance given the hardware we currently have? The answer has to be within the theoretical and mathematical part of computer science.&lt;/p&gt;
+
+&lt;p&gt;Currently, we have multi-cores personal computers available for purchase everywhere, but we barely use all cores together. Thus, the issue is how we can achieve better performance by utilizing all of its cores’ computing power together on one task. We used to have everything been executed in a sequential order, which we call it sequential programming. In sequential programming, everything works one by one according to the line of execution order. In this case, we ignore the power that multi cores can in fact run altogether for a single process and produce a correct result&lt;sup id=&quot;fnref:1&quot;&gt;&lt;a href=&quot;#fn:1&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; in the end. This possibility will increase the overall performance since we distribute the work among all processors to make them work altogether and faster.&lt;/p&gt;
+
+&lt;p&gt;However, if we distribute the work among all processors, they would have to know each other’s progress to work together properly and correctly. For example, as we see the code below, if we loop through an array and sum up each entry together to a variable called &lt;code class=&quot;highlighter-rouge&quot;&gt;total_sum&lt;/code&gt;, it is fairly easy to get it correct under sequential programming where we just add each element one by one. This is not the case in parallel programming.&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;total_sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arr_len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;total_sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// this will not print out the correct sum in parallel programming&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;“&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;total&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;”&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;total_sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Under parallel programming, each processor is running this code block independently, and they will read and write the global variable &lt;code class=&quot;highlighter-rouge&quot;&gt;total_sum&lt;/code&gt; at anytime. When some processors access &lt;code class=&quot;highlighter-rouge&quot;&gt;total_sum&lt;/code&gt; for the first time, the value stored in it might have been altered by some other processors; and when they are trying to write it back, they might overwrite the result produced by other processors. Thus, we need a way to have our processors communicate with each other and sync together properly. This is where MPI and OpenMP come in to play.&lt;/p&gt;
+
+&lt;h2 id=&quot;mpi-and-openmp&quot;&gt;MPI and OpenMP&lt;/h2&gt;
+
+&lt;p&gt;By combining MPI and OpenMP, we can fully utilize the power of supercomputers clusters. Generally, MPI will be in charge of the communication between ranks, and OpenMP will utilize all cores within each rank to work together. There are three major ways for MPI ranks to communicate together, point-to-point communication, one-side messaging, and all-to-all collective. Point-to-point communication happens between two specific ranks and uses &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Send/Recv&lt;/code&gt;. One-side messaging, &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Put/Get&lt;/code&gt;, lets the receiver open a window which works as a shared memory slot where data can be put into that window by other ranks. All-to-all collective, such as &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Bcast&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Allreduce&lt;/code&gt;, works among all ranks within a communicator where each rank will get the same result stored after the MPI call. OpenMP is a more robust method comparing to MPI. It works well for loops and small tasks within each rank of MPI to achieve one single task among multi cores. A great example for hybridizing these two powerful tools is the final research project I finished for this course, a histogramming sort&lt;sup id=&quot;fnref:2&quot;&gt;&lt;a href=&quot;#fn:2&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt; within distributed memory environment.&lt;/p&gt;
+
+&lt;h2 id=&quot;histogramming-sort-in-parallel&quot;&gt;Histogramming Sort in Parallel&lt;/h2&gt;
+
+&lt;p&gt;Sorting is comparable hard under distributed memory considering we have to globally sort all data entries. A histogramming sort targets against this problem. It has three phases, rebalance, histogramming, and move data. The general idea for this algorithm is distributing all data entries among all processors, then find the splitters for each histogram bar, in the end move data to the correct processor.&lt;/p&gt;
+
+&lt;h3 id=&quot;rebalance&quot;&gt;Rebalance&lt;/h3&gt;
+
+&lt;p&gt;The first phase, rebalance, will evenly redistribute all data points among all processors. If one processor has more data entries than the average, it will move data out. On the other hand, it will take data in if it has less than average data entries. MPI all-to-all is used to get the total data entries among all processors, and MPI one-side messaging is used to transfer data. The reason we have to rebalance before histogramming is simple, we want each processor to work on roughly same amount of data during histogramming phase. In this phase, data is not globally sorted, but locally sorted on each of processor at the end.&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;rebalance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;myDataCount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rebalancedData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_size_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rCount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+	&lt;span class=&quot;c1&quot;&gt;// find total data size&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;MPI_Allreduce&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+
+	&lt;span class=&quot;c1&quot;&gt;// find average and error tolerance&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;avg&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;total_data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nprocs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;upper_bound&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lower_bound&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+
+	&lt;span class=&quot;c1&quot;&gt;// span window&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;MPI_Win_creat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+
+	&lt;span class=&quot;c1&quot;&gt;// rebalance process&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;myDataCount&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;upper_bound&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;MPI_Put&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+	&lt;span class=&quot;c1&quot;&gt;// prep the result array&lt;/span&gt;
+	&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rebalancedData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;malloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+
+	&lt;span class=&quot;c1&quot;&gt;// get the data&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rebalancedData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;histogramming&quot;&gt;Histogramming&lt;/h3&gt;
+
+&lt;p&gt;In the second phase, histogramming, we find the correct set of splitters for each bar of our histogram. We perform a binary search for each bar and reduce the searching range by half during each iteration. &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Allreduce&lt;/code&gt; is used to gather the global count for each histogram bar through every iteration. A while loop is introduced for iterations and will be broken once the rank 0 gets the desired splitters set and broadcasts the stop sign. In the end, rank 0 will broadcast the count of each histogram bar and all splitters to all other ranks using &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Bcast&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;findSplitters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;splitters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_size_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numSplitters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	
+	&lt;span class=&quot;k&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;c1&quot;&gt;// get count for each histogram bar from each rank&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;MPI_Allreduce&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+		
+		&lt;span class=&quot;c1&quot;&gt;// check and move each bar&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numSplitters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+			&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;upper_bound&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+				&lt;span class=&quot;c1&quot;&gt;// move to left&lt;/span&gt;
+			&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lower_bound&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+				&lt;span class=&quot;c1&quot;&gt;// move to right&lt;/span&gt;
+			&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+		&lt;span class=&quot;c1&quot;&gt;// rank 0 broadcast stop signal&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;MPI_Bcast&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(...)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+			&lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;move-data&quot;&gt;Move Data&lt;/h3&gt;
+
+&lt;p&gt;The final phase, move data, where all data is moved, is the major work we have to perform for this sorting algorithm. So far, we have found the correct splitters for each histogram bar, then we can use this information to identify whether the data entry in current rank should stay or leave. If it stays, we write it to the output array, and send it out to the correct rank otherwise. Here, we have three options to move the data, either point-to-point &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Send/Recv&lt;/code&gt;, or all-to-all collective, or one-side messaging &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Put/Get&lt;/code&gt;. I first used point-to-point &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Send/Recv&lt;/code&gt; since it is annoying to calculate the displacement for &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Put/Get&lt;/code&gt;. Then, I found out that since our data size is too big, sending everything needs to go into one rank will overload the &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Send/Recv&lt;/code&gt; process. There comes two ways to resolve this, either perform a segmentation or move to other methods. I decided to move to one-side messaging since segmentation relays too much on each different MPI setting. Here, each rank spans a window, and data is put into this window from other ranks if necessary similar to what happened in the rebalance phase.&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;moveData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sendData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sDataCount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recvData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_size_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rDataCount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;splitters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dist_sort_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numSplitters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	
+	&lt;span class=&quot;c1&quot;&gt;// span window&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;MPI_Win_creat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+
+	&lt;span class=&quot;c1&quot;&gt;// loop through all data entry&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sDataCount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sendData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;within&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+			&lt;span class=&quot;c1&quot;&gt;// write to result array&lt;/span&gt;
+			&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recvData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rDataCount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sendData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+			&lt;span class=&quot;c1&quot;&gt;// find the correct rank&lt;/span&gt;
+			&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+				&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;correct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rank&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+					&lt;span class=&quot;c1&quot;&gt;// send to rank j&lt;/span&gt;
+					&lt;span class=&quot;n&quot;&gt;MPI_Put&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+				&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+			&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+	&lt;span class=&quot;c1&quot;&gt;// receive data from window&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recvData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rDataCount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The overall framework is set by MPI, and OpenMP comes into dividing same job into different cores to improve the performance.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-future-of-high-performance-computing&quot;&gt;The Future of High Performance Computing&lt;/h2&gt;
+
+&lt;p&gt;Generally speaking, high performance programming and parallel programming is the way we will go in the future, but I am afraid there is still a lot of work to be done in this field to even full utilize the power we have right now. Considering the hardware development has not slower down dramatically, we probably will have to wait for several years until major research attention is drawn to this area of computing.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:1&quot;&gt;
+      &lt;p&gt;A correct result in parallel programming means it produces the identical result as if it runs under sequential programming. &lt;a href=&quot;#fnref:1&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:2&quot;&gt;
+      &lt;p&gt;General idea in this &lt;a href=&quot;https://charm.cs.illinois.edu/newPapers/93-01/paper.pdf&quot;&gt;paper&lt;/a&gt; and optimization in this &lt;a href=&quot;https://arxiv.org/pdf/1803.01237.pdf&quot;&gt;paper&lt;/a&gt;. &lt;a href=&quot;#fnref:2&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</content>
+        <link>/posts/high-performance-programming-with-mpi-and-openmp</link>
+        <guid isPermaLink="true">/posts/high-performance-programming-with-mpi-and-openmp</guid>
       </item>
-    {% endfor %}
+    
+      <item>
+        <title>Experiment of Incorporating Huel/Soylent into Daily Intakes</title>
+        <description>Years ago from college time, I have always been wanting to do a diet experiment with Soylent. However, I didn’t really have the chance to risk my busy school life for it. After graduating from my college, the COVID hit right at the time. Under the stay-at-home situation, I finally have the time and opportunity to safely experiment my long overdue Soylent diet.</description>
+        <pubDate>Wed, 09 Mar 2022 00:00:00 -0800</pubDate>
+        <content>&lt;p&gt;Years ago from college time, I have always been wanting to do a diet experiment with Soylent. However, I didn’t really have the chance to risk my busy school life for it. After graduating from my college, the COVID hit right at the time. Under the stay-at-home situation, I finally have the time and opportunity to safely experiment my long overdue Soylent diet.&lt;/p&gt;
+
+&lt;h2 id=&quot;knowledge-and-diet-preparation&quot;&gt;Knowledge and Diet Preparation&lt;/h2&gt;
+
+&lt;p&gt;The first phase, preparation, is the most important part. I have to get to know the best way to prepare my body for this experiment and the best products I should use throughout this process.&lt;/p&gt;
+
+&lt;p&gt;First thing I did was taking a nutrition course back to the college time. It helped me better understand how much energy I have to take daily without having any health issues. This course also taught me how unhealthy I was before. I was not eating enough calories or protein to support my body at all. After some basic calculation, I conclude that I should eat at least ~1900kcal everyday as an adult which include ~250g Carbs, ~100g Protein, and ~65g Fat. I started a tracker to better understand my daily intake. This tracker can be done using either pen and paper, or some Apps you may find on your phone. I won’t advertise any Apps to use since this is a very basic calculation.&lt;/p&gt;
+
+&lt;p&gt;Next thing is finding right products to use through this experiment. I was taking some Soylent from time to time during college, but there are more products other than Soylent showed up in the market after these years. One of Soylent’s competitors is Huel. The major difference between Huel and Soylent is that Huel has not only powder but also hot food. After some research, I decided to use both Huel and Soylent through this experiment. My daily plan would be 400kcal Soylent powder for the morning, Huel hot food 400kcal for the lunch, then Huel powder 400kcal for the afternoon, and Huel hot food 400 kcal for the dinner. That would be 1600kcal in total, and there are still 400kcal left which will be consumed from fruits and Huel protein. Sometimes, I would have other food for the day, but I have been limiting the occurrences of this situation.&lt;/p&gt;
+
+&lt;h2 id=&quot;throughout-the-experiment&quot;&gt;Throughout the Experiment&lt;/h2&gt;
+
+&lt;p&gt;Before starting this experiment, I asked around about how people think about Soylent/Huel. Although Most people think this is not a good idea, I still decided to do it myself and see what results turn out with my own experiences.&lt;/p&gt;
+
+&lt;p&gt;I first started with Soylent powder for most of my calories needs, then added some Huel powder. This pure powder diet did not make me feel really well, but not too bad. During that few days, the most wanted food from me was hot food since I was just drinking cold powder food. Then I added Huel hot food. This addition resolved most of my needs for hot food. After these few days, I was able to steadily consume Soylent/Huel powder with Huel hot food everyday without many issues.&lt;/p&gt;
+
+&lt;p&gt;Before I started this diet, I read that some people have hard time pooping while drinking Soylent/Huel powder. However, I never had this issue. My pooping schedule has not changed much, and I don’t fart like crazy as described by others. Well, I do fart as usual people do. Soylent/Huel didn’t change me into a person without farting at all.&lt;/p&gt;
+
+&lt;p&gt;There is another issue mentioned by people who drink Soylent/Huel, the body smell. It was said that drinking pure Soylent/Huel powder would make one smell very bad. Through my experiment, I not only had Soylent/Huel powder but also Huel hot food, so I don’t know whether my opinion would count as a pure Soylent/Huel powder diet result. Anyways, I did not smell worse because of drinking Soylent/Huel powder. If there is a change in my smell, it would be a better smell result after reducing junk food or garbage in my diet.&lt;/p&gt;
+
+&lt;h2 id=&quot;result&quot;&gt;Result&lt;/h2&gt;
+
+&lt;p&gt;The result of this experiment is significant to me. I become calmer since I finally consume enough energy everyday. I don’t have to rush into food whenever I have time anymore as a busy student, and I become much more thoughtful while eating different food.&lt;/p&gt;
+
+&lt;p&gt;Below is a pros and cons list for better understanding.&lt;/p&gt;
+
+&lt;h3 id=&quot;pros&quot;&gt;Pros&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;More mindful with what I eat.&lt;/li&gt;
+  &lt;li&gt;Have a set schedule for eating.&lt;/li&gt;
+  &lt;li&gt;Never need to rush to food.&lt;/li&gt;
+  &lt;li&gt;No regular grocery shopping anymore!&lt;/li&gt;
+  &lt;li&gt;Better mode.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;cons&quot;&gt;Cons&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Not able to randomly eat out.&lt;/li&gt;
+  &lt;li&gt;Might crave junk food after a period of time.&lt;/li&gt;
+  &lt;li&gt;Pooping/smell issue from others, not me though.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+</content>
+        <link>/posts/experiment-of-incorporating-huel-soylent-into-daily-intakes</link>
+        <guid isPermaLink="true">/posts/experiment-of-incorporating-huel-soylent-into-daily-intakes</guid>
+      </item>
+    
+      <item>
+        <title>A Brave and Manipulative New World with Google FLoC Tracker</title>
+        <description>One of the biggest news Google published this year is their new tracking system FLoC which aims to replace all third-party trackers in Google products. However, this new tracker developed by Google themself using their massive user data sets has raised many concerns regarding online safety and privacy.</description>
+        <pubDate>Fri, 13 Aug 2021 00:00:00 -0700</pubDate>
+        <content>&lt;p&gt;For many years, people are using their privacy to trade convenience. When they open our browsers, they would like to see customized results suit their own tastes. No one wants to see what they don’t believe in willingly. When they are dining out, they want to get the best matched one on Yelp. When they shop, they want the most up to date merchandizes fit to their needs exactly so it is absolute not necessary to search for hours to find a pair of good fitting shoes. Indeed, human beings desire to be understood by others, even by machines. And being understood feels good for most of us.&lt;/p&gt;
+
+&lt;h2 id=&quot;back-to-the-old-days&quot;&gt;Back to the Old Days&lt;/h2&gt;
+
+&lt;p&gt;Right now, there are so many “smart” devices around us without much notice. We have smart bulbs, smart microwave, and even smart door locks. In order for a device to be “smart”, it has to store our preferences to “understand” our needs. All these devices are tracking information about us while in use, and we are no more than a profile to these devices and companies who make them. In old days, these companies might sell these data to advertisement companies to make profits, or they would most likely analyze these data by themselves to make more sales. For example, if someone uses light bulb mostly during late night time, it is very reasonable to conclude that one is active during the night. Thus, if these users are active on a schedule, then they might be working on a night shift. This information is enough for many advertisements to target this specific group of people. And even further, a person who works on nigh shifts are most likely in a disadvantaged group, and all people in this group can be easily targeted using tailored advertisements. This might sounds a little bit (or very) discriminate, but this is how advertisements companies are doing right row. This is wrong with no duobbt, but we cannot denial the truth that credit card approval, car loan, house mortgage, and many other products are based on extreme discriminations.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Human beings desire to be understood by others, even by machines.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;However, even the situation is bad enough, there is a limitation here. Each company has one’s own data to analyze, and buying data from other companies is not cheap. So, the profiling is not quite complete. There is something missing here or there. Thus, third party tracking in the old days is still not “smart” enough. Sometimes, people earn good amount of money who are definitely not in need of money still get emergency loan advertisements. Back to those old days, we were not scared with a targeted advertisement.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-machine-knows-what-you-think&quot;&gt;The Machine Knows What You Think&lt;/h2&gt;
+&lt;p&gt;Just like the old saying, if the profit is high enough, people would willing to do whatever it takes. With no doubts, the advertisements business has such a high profit and I won’t be surprised if anyone is willing to go to prison for that high profit. After years and years evolution, the advertisements companies have come up a full procedure to target their consumers.&lt;/p&gt;
+
+&lt;p&gt;For each person online, there is a profile of that person. And, this profile is not something we fill out when we register a web service. It is not our names, our genders, or our address. It is our browsing history, our clicking rate, and the time we stay on a specific page. We might not be honest when we fill out the preference form, but we are very honest of what we are browsing online. For instance, everyone around a person knows that this person only eat healthy organic food and never ever be anywhere near a burger place because this person only eat organic food in front of others. However, this person secretly eat fried chicken and In-n-Out every week privately without anyone knowing about this. But the cookies and trackers on In-n-Out website know that this person ordered burger and fried chicken. Then, the advertisement companies know this, and maybe next week this person will get a coupon for In-n-Out which lures one to make further payment on buying more In-n-Out burgers.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;We might not be honest when we fill out the preference form, but we are very honest of what we are browsing online.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Not just food, the machines know everything about us even better than ourselves. We lie when we talk about ourselves to blend in others, but we never lie when we click on something we are secretly interested, and we never lie when we stay on a page which interests us and close a page quickly when it draws no interests from us at all. All these data are feed into machines which are learning us. This produces a very scary reality. I have heard from more than one friend that if he search Google about something such as toothbrushes, he can see an ad about an attractive toothbrush on his Instagram. And very sad, all ads showed on his instagram are actually something he really wants to purchase. We know how this ends, he bought everything Instagram showed him.&lt;/p&gt;
+
+&lt;p&gt;This surreal situation didn’t just happened in something one searched, but even one thought about and talked about. I guess when a person shows interests in buying something, there is a trace on how one brows online. And, the machine can figure out the hidden trace to understand what this person really wants to buy.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-manipulation&quot;&gt;The Manipulation&lt;/h2&gt;
+&lt;p&gt;After knowing what people want to purchase and feed them with what they want, the advertisements companies are not going to stop at this point. They want to use these machines to tell people what to buy. In other words, these machines are manipulating people on making them buy what the advertisements companies want them to buy instead of what they really need. As we all know, brainwashing is a standard advertisement strategy, and the core of brainwashing is repeat. As long as you repeat enough times, lies will become truths, and no matter how strong one is, any human being will surrender.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;The dangerous part is when someone started trusting one’s browser, and click whatever Youtube present to one, the computer can heavily influence one’s mind by presenting different information.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;These manipulation has a long history with advertising activities, but it is never this easy nowadays. Right now, advertisements companies have your personal online profile, and they know exactly which websites you are visiting, and how long you stared on a specific page. By knowing these information, if you are the target, the “thing” ad companies what you buy would show up everywhere you visit. One would have a feeling that this product is everywhere, and at some point, one would at least start considering purchasing this product. However, the interesting thing is, this product is not actually “everywhere”, it is just all over the places you are visiting.&lt;/p&gt;
+
+&lt;p&gt;There was a quite interesting experiment I did. I first let my chrome browser learn me what I watch on Youtube on purpose for a while, then burned all my trace to see the “original” youtube. After learning me, all videos showed up on my index page would be something like “cute cats”, “Biden”, “books reading”, “new movies” which seem like fit my made up personalities well. I started having a feeling that the whole world is using the “same” Youtube as I am. However, when I burned my data and viewed the “original” Youtube, I was in a shock for a moment with all the information I feel that would not even exist in this world. The dangerous part is when someone started trusting one’s browser, and click whatever Youtube present to one, the computer can heavily influence one’s mind by presenting different information.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-new-era-with-google-floc&quot;&gt;A New Era with Google FLoC&lt;/h2&gt;
+&lt;p&gt;If you thought the ad companies are scary enough, you have underestimated how far they can go driven by profits. During April 2021, Google started testing their very own tracking software where they are trying to replay third-party trackers with, FLoC. Generally speaking, FLoC aims to be the tracker on all Google’s services, especially on Chrome browser, to replace all other trackers we have now. According to Google, this move intend to replace all third-party trackers to have a well-designed tracker under a proper standard. The main reason for doing so is third party trackers are violating too much personal privacy without proper control. However, if this is the goal, why not getting rid of trackers completely? Well, I guess this statement of reason for why they develop FLoC which first seems reasonable is in fact another Google bullshit to cover their ultimate goal of making more profits.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Here come at least two potential vulnerabilities within the algorithm itself, first, the potential to identify each user, and second, the targeting based on vulnerable groups.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Anyways, what is FLoC exactly? Long story short, FLoC is a tracker developed by Google which profiles everyone using Google’s services to serve ad companies better when targeting their potential consumers. FLoC runs on a cohort system where it classifies each person into a cohort, and within each cohort, users share some similarities. For example, a cohort of users who all like hiking and potentially buy more hiking shoes. Here come at least two potential vulnerabilities within the algorithm itself, first, the potential to identify each user, and second, the targeting based on vulnerable groups.&lt;/p&gt;
+
+&lt;p&gt;Within FLoC, each online user would have a tag to identify oneself without revealing one’s true identity in the mean time while tracking. In order to do so, Google states that their cohorts will be large enough to make everyone’s true identity not reversible within each cohort. Specifically, each cohort will have at least thousands of users so sites are not able to cross contrast to figure out who exactly is in a specific cohort. However, the risk still exists if sites have access to all cohorts and have a bit knowledge of a person, a person can be easily identified, or at least identified into a very small group of people. Sadly, every partner of FLoC would have access to all cohorts’ user data. The way Google approaches to solve the issue of how to keep users’ identities in secret while tracking raises another important issue. After putting at least thousands of people in a cohort, on the contrary, there are as many people as possible within a group so ad companies are able to target a huge group of people easily. Think about it, if a cohort of users all share similarities in hiking and potential of buying hiking shoes, won’t it be easier for ad companies to target a single cohort of users in stead of finding a bunch of cohort to target together?&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Things are not that simple. And if things are ever that simple, it would be splendid.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Besides the danger of putting users’ real identities on an edge while tracking using FLoC, there is another important issue regarding Google’s FLoC tracking system, the targeting towards vulnerable groups.&lt;/p&gt;
+
+&lt;p&gt;As Google states, machine learning is heavily involved in the FLoC cohort grouping algorithms. In which case, machines are going to group people into cohort ruthlessly and robustly without any humanity. Thus, vulnerable groups are going to be identified regardless, and ad companies who have access to these vulnerable groups are able to do very bad things such as manipulating people with depression and many others. Of course, Google claims there is a solution within FLoC algorithm for this issue. FLoC’s solution on this is whenever there is a vulnerable group grouped out, the algorithm is going to dismiss this group and re-group everyone inside. However, how would you find out this is a group of people with vulnerability? For example, for people with depression, not all of them are under medicine, even worse, many of them are not aware of having a depression. Things are not that simple. And if things are ever that simple, it would be splendid.&lt;/p&gt;
+
+&lt;h2 id=&quot;fake-socializing&quot;&gt;Fake Socializing&lt;/h2&gt;
+&lt;p&gt;Beyond what we have discussed above, I would like to talk about a very interesting scenario I have been seeing these days regarding online profiling by human beings. The fake socializing. Indeed, being social is “normal” to many people and being self-satisfiable is “abnormal” to them. This leads to that in many cases, people are pretending to be social even if they are not. In order to do so, people start to publish their connections and information, aka personal information, online. For example, many successful business such as Facebook, Instagram, and LinkedIn are based on this need. People connect to people they don’t know to look better and impress other people. Now, there are more and more platforms where you can follow others and get followed to show how social you have, and people are even buying followers to make themselves look better.&lt;/p&gt;
+
+&lt;p&gt;The online fake socializing has also made people believe that what they have learned about others from their online profiles are indeed what other people are, and what they present to others online are indeed what they are. Regardless the knowledge learned by the machine which is always a rather true reflection of personalities of a certain person, what people directly see online are not always the truth. These people are living in bubbles created by themselves and believe nothing but the fancy reflections these bubbles made. The horror story is, maybe after my generation, people would believe this is the way to make friends or even connect to people. In a fact, I have came cross people being worried about networking after I told them I got rid of LinkedIn. Since when LinkedIn equals to networking? Indeed it is a networking tool to do some networking, but it is definitely not all of it. I can always meet people for dinner, grab lunch together, sit on the grass and chat with each other. Would’t that be more enjoyable than posting links on each others’ web feed and pretend others have actually read it?&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Come on, just ask me out for a lunch or hiking or whatever, and we can chat about who I am and who you are from there.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Besides above, I also feel that there is an extreme gap between the online social world and the reality these days. Specifically, the differentiation of online friends and friends in reality. I have come across people who indicated to others that I am a friend of them with only knowing me through reading the about page I put online. They even have not had a cup of tea with me or knowing what I usually do when I am free. If these people are able to claim I am their friends, I could easily say that I am a friend of Barack Obama since I know his whole life even where he was born. For me, friends are people who spend time together either studying, reading, watching movies, or just hanging out together doing random stuff. However, for many people nowadays, friends are just knowing what each other posted on Instagram. A friendly catching up is no longer finding a time to have dinner together, instead, it is reading Facebook posts. They even forget how to be friends with others. I have met people who wish to make friends with me, and of course I would also like to make new friends, but they are freaked out once they knew that I do not use any social media. They do not know what to do to make friends with others other than following them on social medias. Come on, just ask me out for a lunch or hiking or whatever, and we can chat about who I am and who you are from there.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;References:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://web.dev/floc/&quot;&gt;What is FLoC?&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.eff.org/deeplinks/2021/03/googles-floc-terrible-idea&quot;&gt;Google’s FLoC Is a Terrible Idea&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.washingtonpost.com/technology/2021/05/18/google-io-ad-tracking-2021/&quot;&gt;Google announces new privacy features for Android phones — but stops short of limiting ad tracking&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.eff.org/deeplinks/2021/03/google-testing-its-controversial-new-ad-targeting-tech-millions-browsers-heres&quot;&gt;Google Is Testing Its Controversial New Ad Targeting Tech in Millions of Browsers. Here’s What We Know.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.howtogeek.com/724441/what-is-googles-floc-and-how-will-it-track-you-online/&quot;&gt;What Is Google’s FLoC, and How Will It Track You Online?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+</content>
+        <link>/posts/a-brave-and-manipulative-new-world-with-google-floc-tracker</link>
+        <guid isPermaLink="true">/posts/a-brave-and-manipulative-new-world-with-google-floc-tracker</guid>
+      </item>
+    
+      <item>
+        <title>The Rise and Fall of a Pandemic Driven Market</title>
+        <description>During the year of 2020, we have experienced several extreme situations within our market. Here, let us talk about the market raise, market down, and the craziness of Bitcoin.</description>
+        <pubDate>Sun, 20 Jun 2021 00:00:00 -0700</pubDate>
+        <content>&lt;p&gt;The year of 2020 is a historical year for everyone in every field to study. In a financial view, the U.S. market was hit first and dropped dramatically then quickly recovered. All these fascinating events happened so quickly within the same year give us no time to thoroughly think about them at the time they happened. Now, as things starting to get settled and vaccines have been delivered, it is the time to have a look with the raise and fall within the stock market during the year of pandemic.&lt;/p&gt;
+
+&lt;p&gt;The market in the U.S. during the year of 2020 was mainly moved by two countries, the States and China. The first move was initialed in China when the virus outbreak hit the city of Wuhan.&lt;/p&gt;
+
+&lt;h2 id=&quot;first-hit-in-china&quot;&gt;First Hit in China&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;“We know it is going to crash at some point in the near future, but we just don’t know exactly when. ”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Around the end of 2019, Covid outbreak hit a large city of China, Wuhan, and it suddenly became a national emergency for the Chinese government. At first, the Chinese government was trying to cover things up as they have always been doing regarding this type of emergency, but they quickly found out that this is not something they were able to cover it up easily. As for Chinese people, especially Chinese investors, they always have a low trust on the news put out in public which has been heavily censored by their government historically, and so do they this time. Starting around December 2019 when the rumors first came out, investors in China started moving their assets into the U.S. market, and we can see the continue rising of SP500 during the end of year 2019 even though it was not quite expected by U.S. investors.&lt;/p&gt;
+
+&lt;p&gt;Starting around the early of 2019, there was a strong voice among the U.S. stock market which concerns a lot regarding the market vulnerability under Trump’s administration. After a lot of policies issued by the Federal Reserve to cut the interests which were encouraged by the Trump administration, most of professionals in the stock market become very worried and conservative of further investment moves. “We know it is going to crash at some point in the near future, but we just don’t know exactly when”, as stated by a Berkeley student I met during mid 2019. Also believed by myself, there was a clear sign among the stock market suggests that the market can crash anytime. Thus, these professionals could not figure out why the market was still raising during the end of 2019. And amusedly, Trump was quite delighted about this market raising and believed this raise occurred thanks to his good work.&lt;/p&gt;
+
+&lt;p&gt;As we brushing through, this market raise happened during the end 2019 and early 2020 before the Covid outbreak finally hit the U.S. was mainly driven by the money escaping from China, instead of money within the U.S. Starting from the notice put out by Dr. Wenliang Li, a lot of investors in China began their contingency plan of finding ways to hedge their portfolios, and the biggest market outside of China is the U.S. market. The U.S. market has always been believed much safer than the Chinese market by Chinese investors since it is closer to the definition of a “free market”. Unlike the limited power of the U.S. government on the U.S. market, the Chinese government is able to directly interfere and control the Chinese market. In which way, as a Chinese investor investing in the Chinese market, the Chinese government can take away one’s assets at any time as they wish. This situation very rarely happen but this is a huge risk since this is allowed to happen in Chinese market. Undeniably, public general investors in the U.S. was influenced by the unusual market raising during this period of time. The only thing they see from the surface is that market is still raising, even though most of professional investors are not saying the market is going to raise. So, in some ways, the general public started to believe the market is going to raise no matter what. With the help of mobile trading apps such as Robinhood and Webull, more small investors in the U.S. with the belief of a bull market entered and started trading during this period of time.&lt;/p&gt;
+
+&lt;p&gt;During the time of the end of 2019 to early 2020, many Chinese investors I know started putting a part of their portfolio into the U.S. market or the European markets since they don’t believe that the Chinese government is capable of getting Covid under control in a short period of time. The HSI dropped dramatically reflecting to all these assets re-allocations made by Chinese investors. During the end of 2019, I also encountered a lot of first-time investors from China trying to put money into the U.S. market because they literally lost faith in the Chinese government. This extreme fear can be tracked back to the SARS during 2003. The SARS pandemic in China during 2003 almost destroyed the Chinese market and no one can afford it once again. The Chinese government promised after SARS that they would do better to not cover things up next time, but they failed the general public once again. Many Chinese investors were even afraid that the Chinese market would crash into dusts and the Chinese govern-ship was going to switch. However, the only mistake these Chinese investors made under such a horrible fear is putting their faith on a wrong country, the U.S. Specifically, the Trump administration.&lt;/p&gt;
+
+&lt;h2 id=&quot;finally-the-us-market&quot;&gt;Finally, the U.S. Market&lt;/h2&gt;
+&lt;p&gt;With the belief of the U.S. market and the U.S. government, these Chinese investors believe that the U.S. could control the Covid better and the U.S. market is much safer than the Chinese market. However, after the pandemic hit the U.S., there is no more safe market for everyone. During March 2020, the U.S. market finally crashed because of the lock down. The SP500, Dow Jones, and Nasdaq dropped tremendously. All of the two-years work of raising the stock price done by the Trump administration became a bursted bubble. This time, both of the general public investors in China and the U.S. lost their hope. So, where to go then? It is not too hard to guess that they chose the only place left, the Crypto market, specifically, the Bitcoin.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Since the time Bitcoin was invented, it has been used for Money laundry to move money from China to outside for years.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Bitcoin, a currency which was created for hard-to-trace transactions in order to protect privacy, probably has never expected itself becoming an investing tool to hedge the portfolio risk. The first raise of Bitcoin can be traced back to 2017. The highest price reached during that time was almost $20k. Then it crashed and remain the price of couple of thousands for years. During the end of 2019, there was a small raise of Bitcoin which might be caused by some Chinese investors who believe in the value of Bitcoin. But this should be a small amount of money which should not have moved the Bitcoin market that much. In my opinion, this raise was caused by Chinese people who are trying to move money from China out using Bitcoin. Since there is a $50k limit for each Chinese on how much foreign currency they can exchange using RMB every year, there is an underground money laundry service for moving large amount of RMB outside of China. Since the time Bitcoin was invented, it has been used for Money laundry to move money from China to outside for years. Although there are many other safer ways to break this $50k limit, Bitcoin is the most accessible way for the general Chinese public. There is no need for any other contacts within the destination country outside of China and anyone can do it as long as one has a Bitcoin wallet. If you understand Chinese, you might even find tutorials for how to do this by simply searching online. Besides, it is hard to trace back if anyone laundries using Bitcoin. This also explains that the reason Bitcoin dropped after the Covid hit the U.S. as people stopped moving large amount of cash outside of China and started worried about the value of USD as well.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-craziness-of-bitcoin&quot;&gt;The Craziness of Bitcoin&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;The market will always reflect what people actually believe instead of what they are told to believe or what others say they believe.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;After the small jump of Bitcoin price during the end of 2019, the price of Bitcoin literally shoot to the moon during the end of 2020.&lt;/p&gt;
+
+&lt;p&gt;There are many reasons which caused this raise, and the most important reason I can come up with is the money in China started escaping again. Although it is all over the news both in U.S. and China that Chinese people are very satisfied with how the Chinese government handled this pandemic, the market doesn’t say so. The market will always reflect what people actually believe instead of what they are told to believe or what others say they believe. In order to control the Covid, the Chinese government pushed many extreme polices in China, and reasonable Chinese people become very terrified because of these policies. In other words, how the Chinese government handled the Covid become many Chinese people’s last push to immigrate to other countries. Unlike what the news says, many young Chinese people in China started realizing the fact of dictatorship of Chinese government because of the Covid. According to one of my young friends who stayed in China after college, “The Chinese government is controlling how much basic needs Chinese people can get so Chinese people would struggle in finding resources to cover housing, food, medical expenses, and child care instead of thinking about humanity or democracy”. This is very different from the young Chinese people who are already in the U.S. during the Covid and are extremely mislead by news to go back to China.&lt;/p&gt;
+
+&lt;p&gt;After the Covid situation settled in the U.S. and many other European countries, more and more Chinese people in China started put their immigration process into real actions instead of just planning. In order to escape China, the first thing is the currency, and Bitcoin is the perfect tool to laundry money out of China to bypass the $50k limit.&lt;/p&gt;
+
+&lt;p&gt;In addition to the Bitcoin money laundry business which moved the price of Bitcoin a lot, the stimulate check also helped. After getting the stimulate checks during the second half of year 2020 when the market recored, many new investors started thinking about saving and putting this “free money” into the stock market to grow. Thanks to the flooding advertisements put out by many online trading tools such as Robinhood, many new investors with their stimulate checks entered the market. Within these new investors, young people is a large portion of them. With no doubt, young adults are more easily to accept new things comparing to elder people who are not willing to risk their retirement money. However, these young and new investors who do not have much investing experiences are extremely easy to be mislead and mamipulated by the platform.&lt;/p&gt;
+
+&lt;p&gt;Fore these young investors, digging out the profits reports and study all those companies by numbers on Nasdaq is something brand new to them. Logically, they need to equip the proper knowledge prior making investing moves, but education works too slow to earn profits for the online trading platforms. Unfortunately, the most popular platform within all these online trading tools, Robinhood, does not try to educate their users at all. On the contrary, they try to encourages dangerous trading strategies. &lt;strong&gt;Trading index funds or mutual funds are too hard to understand? No problem! You don’t need to try to understand those garbage, just trade Bitcoin! Simple and easy, and it is the future!&lt;/strong&gt; In Robinhood, day trade, margin, options, and trading cryptos are encouraged, and there is barely any penalty for day trade. After all, learning how to plan assets for more than 50 years seems too much of knowledge to acquire. They might be afraid that after educating their users too much, their users are going to realize the obvious flaws they have within their software design. Not just Robinhood, many other online platforms are also following this type of advertising strategy to encourage dangerous moves. The risk is always written in the minimal size of font and people do not get much educational information nor enough warning through these platforms. For example, the extended trading hour is put on Robinhood as a paid feature which make people feel like it is always an advantage to trade in pre-market and after hours. However, it is not always true, and there is a high risk for trading in extended hours. As for Crypto, Robinhood has made the Bitcoin trading even easier than their stock trading process. Bitcoin is also advertised as a “good investment tool” in Robinhood which will preserve your capital. By couple of clicks, you can trade as much Bitcoin as you wish. This made me wonder whether their Software Engineers are big fans of the casinos design mechanism in Las Vegas. For me, it does indeed feel like being inside of a casino instead of a bank while using Robinhood.&lt;/p&gt;
+
+&lt;p&gt;It is totally understandable that when a new investor open a proper brokerage account, one is overwhelmed by all the charts and numbers. While having a simple and neat online platform with a simple trading product available, these new traders are more willingly to use it. But, these online platforms are not doing the correct thing by encourage dangerous strategies. And these encouragements on dangerous strategies have sever consequences. There is a 20-years-old young adult who commented suicide because he saw he owed $730k while trading options using Robinhood. Trading options, margins, extended hours, and Cryptos have a much higher risks than general assets allocating strategies, but these online platform failed to educate their user to be aware of that. Even worse, they encourage their user to use these dangerous strategies.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;“Please leave my IRA and 529 alone, thank you.”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;During the summer of 2020, I was in a portfolio management class at Haas, and most of my classmates use Robinhood. Under the influence of Robinhood, they all have a very radical strategy on their portfolio management. I know one of them allocated a big portion of her assets in Bitcoin, another person does day trading, another does short term trading on Tech stocks such as Tesla, and another only trades options. All of them are quite satisfied with what they have achieved so far and don’t understand why I am still keeping an old-fashioned investment strategy at all. As I am not a Haas student, I don’t know whether these students are going to be the type of most professional portfolio managers working in the Wall Street during the next decade, but I hope not. I would say, “please leave my IRA and 529 alone, thank you”.&lt;/p&gt;
+
+&lt;h2 id=&quot;interesting-side-discussions&quot;&gt;Interesting Side Discussions&lt;/h2&gt;
+&lt;p&gt;After the U.S. market crashed because of Covid and the Trump administration failed to control the virus for over a year, there are something quite interesting happened within the U.S. investors.&lt;/p&gt;
+
+&lt;h3 id=&quot;chinese-market-a-better-place-to-go&quot;&gt;Chinese Market, a Better Place to Go?&lt;/h3&gt;
+
+&lt;p&gt;The first thing which amused me a lot is that quite a few U.S. investors started putting money into the Chinese market without a good understanding of the Chinese government or the Chinese market. To be honest, if I cannot read Chinese nor can I access to many ordinary Chinese people, I would do the same thing as these U.S. investors do. By reading the news published in he U.S., the only thing I can conclude is that Chinese government did a great job and got the virus under controlled very quickly, but the U.S. government has been doing a very shitty job on this. Thus, if this happened again, my money would be safer in the Chinese market than the U.S. market, right? No, I personally do not think so at all. On the contrary, anyone who shifted one’s opinion on the Chinese market simply based on how the Chinese government performed during the pandemic is completely letting one’s fear get the best of it.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If we only care about getting Covid under controlled without caring about how, the easiest thing a government could have done is simply killing all people with Covid.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;As we all aware, how a government perform during the pandemic is just one factor to evaluate a specific geography-based market. There are many U.S. investors short seeing other disadvantages of Chinese market and started desperately moving money into Chinese market after the Covid outbreak inside of the U.S. Besides the fact that the Chinese government controlled the Covid quickly enough, there are many other factors to consider when we talk about the Chinese market vulnerability. Also, when we consider the quick actions made by the Chinese government to control Covid, there is something we cannot ignore which is the extreme policies made by the Chinese government. For example, people are absolutely not allowed to go out of their house if they are suspected to have a close contact to Covid, and this policy is enforced by locking people inside of their place literally using a physical huge lock outside of their doors. There is also a schedule for each household to go out for grocery at most once per week and there is no way to get any emergency additional grocery visit at all. People who need emergency visit outside their places were ignored in most of cases, even for emergency hospital visits. All of these policies caused huge problems and to be honest, the success of controlling Covid in China is done by sacrificing Chinese people’s lives. If we only care about getting Covid under controlled without caring about how, the easiest thing a government could have done is simply killing all people with Covid. In which case, there will be no Covid case at all. But is this kind of government doing a good job? &lt;strong&gt;Absolutely NO&lt;/strong&gt;! And I am very sure about this, if sacrificing money from U.S. investors would benefit the Chinese government in any way, the Chinese government would do it without a second thought. Thus, I wouldn’t dare putting my money into such a vulnerable market which is controlled publicly by a group of dictators.&lt;/p&gt;
+
+&lt;h3 id=&quot;bitcoin-the-future-of-investment&quot;&gt;Bitcoin, the Future of Investment?&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Investing is not gambling but investing strategy can be made as gambling. They made their investing strategy into gambling and people who gamble always lose in the end.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;For money laundry, the price of Bitcoin actually does not matter at all. The ultimate goal for them is moving money instead of keeping it as Bitcoin and caring the raise and fall for the price of their laundering tool. However, the raise of the price of Bitcoin caused by money laundry business implied the false information among the U.S. investors.&lt;/p&gt;
+
+&lt;p&gt;Historically, the Bitcoin has been believed by professional investors in U.S. to have no actual value in it, and many investors still believe so today. When I was taking classes at Haas, our professor made a very good statement regarding Bitcoins. &lt;strong&gt;“Bitcoins are like sands in cans, as long as people are willing to buy it, the market would ship these cans. However, whenever people stopped buying and you open those cans you have, the only thing you have are sands”&lt;/strong&gt;. But, the high profits yield of Bitcoin is extremely attractive for many investors. Who would resist an investment which gives you more than ten times of profits within months? I guess the only thing which is more profitable than Bitcoin from the time of 2020 to 2021 is written in the criminal law in every country. Because of this huge profit achieved by Bitcoin, many investors around me who used to firmly believe there is no future for Bitcoin as an investment tool started doubting their decisions. After all, the price of Bitcoin raised from 3k to 60k since 2019.&lt;/p&gt;
+
+&lt;p&gt;However, in my opinion, this crazy raise of Bitcoin will eventually stop at some point. Bitcoin won’t disappear though, but just goes back to its original designed purpose, as a currency. For people who actually use Bitcoin as what it was designed for, there is not much difference either the price of Bitcoin is low or high. They would still trade Bitcoin as a middle currency to preserve privacy. The only group of people who would be influenced by the raise or drop for the price of Bitcoin is the group of people who treat Bitcoin as an investment tool instead of a safe digital currency. There is no way to predict the price of Bitcoin whatsoever since the price of it does not reflect its usage, so investing Bitcoin is completely gambling. Investing is not gambling but investing strategy can be made as gambling. They made their investing strategy into gambling and people who gamble always lose in the end.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-immigration-of-chinese-people&quot;&gt;The Immigration of Chinese People&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;For these Chinese people, immigrating to U.S. is not a life choice, it is rather a personal gaol or even a dream.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The interesting thing happened within Chinese immigrants during the year of pandemic is people in China want to get out and people outside of China want to go back. This really showed how much influence media can make on people. For Chinese people inside of China, it is quite normal for many of them pursuing an immigration life in other countries. However, it is not usual at all for so many Chinese immigrants outside of China finding ways to go back. This happened during the year of 2020. Even when the plane tickets for going back to China reached $20k for a single trip, they were sold out in seconds. Especially in the U.S., the country most Chinese immigrants choose to arrive, has been through an immigrants lost during pandemic.&lt;/p&gt;
+
+&lt;p&gt;This immigrants lost has even influenced me while banking with Bank of America. Many Chinese parents have an obsess of making their children go to business schools, so there are many bankers who are actually Chinese immigrants in the U.S. Especially in SoCal with such a huge Chinese population, banks are quite willing to sponsor bankers who are bilingual in both English and Chinese. However, many Chinese bankers left during the pandemic. By the time of early 2021, all branches of Bank of America in Pasadena are closed and the closest Bank of America branch I can visit located in Temple City. The reason for the branch closure provided by a banker is that they do not have enough bankers to reopen branches in Pasadena. Also when I was in the Temple City branch, there were only two bankers available.&lt;/p&gt;
+
+&lt;p&gt;Before this global pandemic, immigrants in the U.S. were considered having some sort of privilege to remain in the U.S. There was one time I was talking to a Chinese investor regarding the issues around the U.S. society, he responded to me that I am lucky enough to be here in the U.S. and I shouldn’t complain that much. For these Chinese people, immigrating to U.S. is not a life choice, it is rather a personal gaol or even a dream. And, if you visit China with either an U.S. permanent residency or citizenship, you would be considered somehow a “higher class” within the Chinese society. Thus, in order to achieve the “climbing to higher class” dream, for many people who are already in the U.S. without either permanent residency or citizenship, one of their ultimate goal is immigration. These Chinese people might not be able to visit back China freely because of the fear of getting denied on their visa. However, the fear of Covid made them blind on the reason they escaped China in the first place. Especially when they saw the public news put out by the Chinese government which is always praising how well the Chinese government does and how bad situations are in the U.S., they lost their critical thinking ability.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Now, the only difference here is they treat “going back to China” as a solution to their problems. As if every problem they encountered here in the U.S. is going to be resolved at the time they arrived in China.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;These people who are in the U.S. are mainly young students and young workers who are very easy to be manipulated by the media. And these Chinese people have been staying in the U.S. for too long to recall how much truth there is in the news published by the Chinese government. During the year of 2020, a lot of college students, college graduates, and even workers with H1B visa I know went back to China. They believe China is the future according to the Chinese news. But most of them didn’t end up with what they wished at the time they board the plane back to China. One college student I know was not able to come back to finish his college, and he ended up retaking high school in China again. College graduates flee back found out it is not very easy for them to find a job in China either. My friend who graduated from UCLA in 2019 and went back to China conveyed to me that she has not landed any job yet now in 2021. The most importantly, the sever competition between Chinese people. I guess these Chinese students either arrived in the U.S. when they are too young, or they have stayed here for too long to remember how sever the competition in China is. They have become too soft to survive in China.&lt;/p&gt;
+
+&lt;p&gt;If we think about this more, we would realize that the issue here is these Chinese immigrants treat a method, immigrating to U.S., as a goal. For them at first, immigrating to U.S. could solve all problems, and they expect that they wouldn’t need to worry about anything else after successfully immigrated to the U.S. Now, the only difference here is they treat “going back to China” as a solution to their problems. As if every problem they encountered in the U.S. is going to be resolved at the time they arrived in China. Of course we know this is not true, but people are so easy to be controlled by their fear as we have seen so many times in the history. And exactly, the only thing everyone learned from the history is not learning anything at all.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+</content>
+        <link>/posts/the-rise-and-fall-of-a-pandemic-driven-market</link>
+        <guid isPermaLink="true">/posts/the-rise-and-fall-of-a-pandemic-driven-market</guid>
+      </item>
+    
   </channel>
 </rss>
