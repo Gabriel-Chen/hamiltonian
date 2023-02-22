@@ -1,4 +1,0 @@
----
-slug: nutrition
-name: Nutrition
----

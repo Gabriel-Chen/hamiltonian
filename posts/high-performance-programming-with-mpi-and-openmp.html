@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Hamiltonian | High Performance Programming with MPI and OpenMP</title>
+  <meta name="description" content="Parallel programming and high performance programming has been the way people trying to enhance computer performance after the development of hardware slows down. The major two systems researchers have been using are MPI and OpenMP. This spring, I had the chance to explore both of them and worked on a research project to perform a histogramming sort among distributed memories.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="High Performance Programming with MPI and OpenMP">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gabrielchen.com/hamiltonian//hamiltonian/posts/high-performance-programming-with-mpi-and-openmp">
+  <meta property="og:description" content="Parallel programming and high performance programming has been the way people trying to enhance computer performance after the development of hardware slows down. The major two systems researchers have been using are MPI and OpenMP. This spring, I had the chance to explore both of them and worked on a research project to perform a histogramming sort among distributed memories.">
+  <meta property="og:site_name" content="Hamiltonian">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="https://gabrielchen.com/hamiltonian//hamiltonian/posts/high-performance-programming-with-mpi-and-openmp">
+  <meta name="twitter:title" content="High Performance Programming with MPI and OpenMP">
+  <meta name="twitter:description" content="Parallel programming and high performance programming has been the way people trying to enhance computer performance after the development of hardware slows down. The major two systems researchers have been using are MPI and OpenMP. This spring, I had the chance to explore both of them and worked on a research project to perform a histogramming sort among distributed memories.">
+
+  
+    <meta property="og:image" content="https://gabrielchen.com/hamiltonian//hamiltonian/assets/og-image-ee46bbc61b334e821e81534b1fd43f3fee6f020ec174b3c2114445695fd48c01.jpg">
+    <meta name="twitter:image" content="https://gabrielchen.com/hamiltonian//hamiltonian/assets/og-image-ee46bbc61b334e821e81534b1fd43f3fee6f020ec174b3c2114445695fd48c01.jpg">
+  
+
+  <link href="https://gabrielchen.com/hamiltonian//hamiltonian/feed.xml" type="application/rss+xml" rel="alternate" title="Hamiltonian Last 10 blog posts" />
+
+  
+
+  
+
+    
+      <link rel="icon" type="image/x-icon" href="/hamiltonian/assets/favicon-light-87a149b59d65e092cc42314685a45e74ed0152eec36b15c45d988c9ff87fee26.ico">
+      <link rel="apple-touch-icon" href="/hamiltonian/assets/apple-touch-icon-light-87a149b59d65e092cc42314685a45e74ed0152eec36b15c45d988c9ff87fee26.png">
+      <link rel="stylesheet" type="text/css" title="light" id="light" href="/hamiltonian/assets/light-c33d1dd3dd2a2857eb7f255b3496d2adbe27cdd5d4ed5ea7271fff057572253f.css">
+      <link rel="stylesheet" type="text/css" title="dark" id="dark" href="/hamiltonian/assets/dark-b8f5e4f8fdf3638a279298a11ad3f568e47d10ce3640121da11174a35051aaae.css" disabled="true">
+    
+
+  
+
+</head>
+
+<body>
+  <main>
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav scrollappear">
+  <a href="/hamiltonian/" class="header-logo" title="Hamiltonian">Hamiltonian</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="https://gabrielchen.com/about/">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-about">
+  <use href="/hamiltonian/assets/about-ecf154b571ab8034ae00aeed91a3b7ad68db80b46d958753ad6216c919486e88.svg#icon-about" xlink:href="/hamiltonian/assets/about-ecf154b571ab8034ae00aeed91a3b7ad68db80b46d958753ad6216c919486e88.svg#icon-about"></use>
+</svg>
+
+        </a>
+      </li>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      <li>
+        <a href="mailto:gabrielchen@duck.com" title="Email">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-email">
+  <use href="/hamiltonian/assets/email-782473193bf750036fdb90e8daa075508a20509d01854c09f3237c144a3f0601.svg#icon-email" xlink:href="/hamiltonian/assets/email-782473193bf750036fdb90e8daa075508a20509d01854c09f3237c144a3f0601.svg#icon-email"></use>
+</svg>
+
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/hamiltonian/sub" rel="noreferrer noopener" target="_blank">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-rss">
+  <use href="/hamiltonian/assets/rss-541ec5cea9cefd10d2fcfec01888f3f231a8829940249835fa7b7b3a12ae0d0d.svg#icon-rss" xlink:href="/hamiltonian/assets/rss-541ec5cea9cefd10d2fcfec01888f3f231a8829940249835fa7b7b3a12ae0d0d.svg#icon-rss"></use>
+</svg>
+
+        </a>
+      </li>
+    
+    
+      <li>
+        <a onclick="toggle()" title="Toggle Theme">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-theme">
+  <use href="/hamiltonian/assets/theme-66869e0bf8dab34bae1c86bda400327b772e0be69e8dc28d3ede896e771320ed.svg#icon-theme" xlink:href="/hamiltonian/assets/theme-66869e0bf8dab34bae1c86bda400327b772e0be69e8dc28d3ede896e771320ed.svg#icon-theme"></use>
+</svg>
+
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+
+
+        <article class="article scrollappear">
+          <header class="article-header">
+            <h1>High Performance Programming with MPI and OpenMP</h1>
+            <p>Parallel programming and high performance programming has been the way people trying to enhance computer performance after the development of hardware slows down. The major two systems researchers have been using are MPI and OpenMP. This spring, I had the chance to explore both of them and worked on a research project to perform a histogramming sort among distributed memories.</p>
+            <div class="article-list-footer">
+  <span class="article-list-date">
+    May 4, 2022
+  </span>
+  <span class="article-list-divider">-</span>
+  <span class="article-list-minutes">
+    
+    
+      8 minute read
+    
+  </span>
+  <span class="article-list-divider">-</span>
+  <div class="article-list-tags">
+    
+      
+      <a href="/hamiltonian/tag/technology" title="See all posts with tag 'Technology'">Technology</a>
+    
+      
+      <a href="/hamiltonian/tag/computer science" title="See all posts with tag 'Computer Science'">Computer Science</a>
+    
+      
+      <a href="/hamiltonian/tag/article" title="See all posts with tag 'Article'">Article</a>
+    
+  </div>
+</div>
+          </header>
+
+          <div class="article-content">
+            <p>During the past six months, I have been learning high performance programming and parallel programming with MPI and OpenMP. It is always a fascinating process whenever I have the chance to learn something new. I arrived in this course with barely any knowledge about parallel programming, and comes out with the ability to do research on high performance programming analysis. This might be the beauty of going to schools, you never know what you don’t know until you know.</p>
+
+<h2 id="the-raise-of-distributed-memory">The Raise of Distributed Memory</h2>
+
+<p>Among recent years, distributed memory has evolved quickly as the development of hardware is reaching its own bottleneck. People need more powerful and faster computers, but no one wants a computer with bigger size than they have already had. As smaller and smaller hardware components go, there it comes to a limit where nothing can be ever smaller to be put together without burning the whole chip down. Therefore, researchers start finding another angle to improve the overall performance. The question is, how can we enhance the performance given the hardware we currently have? The answer has to be within the theoretical and mathematical part of computer science.</p>
+
+<p>Currently, we have multi-cores personal computers available for purchase everywhere, but we barely use all cores together. Thus, the issue is how we can achieve better performance by utilizing all of its cores’ computing power together on one task. We used to have everything been executed in a sequential order, which we call it sequential programming. In sequential programming, everything works one by one according to the line of execution order. In this case, we ignore the power that multi cores can in fact run altogether for a single process and produce a correct result<sup id="fnref:1"><a href="#fn:1" class="footnote">1</a></sup> in the end. This possibility will increase the overall performance since we distribute the work among all processors to make them work altogether and faster.</p>
+
+<p>However, if we distribute the work among all processors, they would have to know each other’s progress to work together properly and correctly. For example, as we see the code below, if we loop through an array and sum up each entry together to a variable called <code class="highlighter-rouge">total_sum</code>, it is fairly easy to get it correct under sequential programming where we just add each element one by one. This is not the case in parallel programming.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">total_sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">arr_len</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">total_sum</span> <span class="o">+=</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="p">}</span>
+<span class="c1">// this will not print out the correct sum in parallel programming</span>
+<span class="n">printf</span><span class="p">(</span><span class="err">“</span><span class="n">the</span> <span class="n">total</span> <span class="n">sum</span> <span class="n">is</span><span class="o">:</span> <span class="o">%</span><span class="n">d</span><span class="err">\</span><span class="n">n</span><span class="err">”</span><span class="p">,</span> <span class="n">total_sum</span><span class="p">);</span> 
+</code></pre></div></div>
+
+<p>Under parallel programming, each processor is running this code block independently, and they will read and write the global variable <code class="highlighter-rouge">total_sum</code> at anytime. When some processors access <code class="highlighter-rouge">total_sum</code> for the first time, the value stored in it might have been altered by some other processors; and when they are trying to write it back, they might overwrite the result produced by other processors. Thus, we need a way to have our processors communicate with each other and sync together properly. This is where MPI and OpenMP come in to play.</p>
+
+<h2 id="mpi-and-openmp">MPI and OpenMP</h2>
+
+<p>By combining MPI and OpenMP, we can fully utilize the power of supercomputers clusters. Generally, MPI will be in charge of the communication between ranks, and OpenMP will utilize all cores within each rank to work together. There are three major ways for MPI ranks to communicate together, point-to-point communication, one-side messaging, and all-to-all collective. Point-to-point communication happens between two specific ranks and uses <code class="highlighter-rouge">MPI_Send/Recv</code>. One-side messaging, <code class="highlighter-rouge">MPI_Put/Get</code>, lets the receiver open a window which works as a shared memory slot where data can be put into that window by other ranks. All-to-all collective, such as <code class="highlighter-rouge">MPI_Bcast</code> and <code class="highlighter-rouge">MPI_Allreduce</code>, works among all ranks within a communicator where each rank will get the same result stored after the MPI call. OpenMP is a more robust method comparing to MPI. It works well for loops and small tasks within each rank of MPI to achieve one single task among multi cores. A great example for hybridizing these two powerful tools is the final research project I finished for this course, a histogramming sort<sup id="fnref:2"><a href="#fn:2" class="footnote">2</a></sup> within distributed memory environment.</p>
+
+<h2 id="histogramming-sort-in-parallel">Histogramming Sort in Parallel</h2>
+
+<p>Sorting is comparable hard under distributed memory considering we have to globally sort all data entries. A histogramming sort targets against this problem. It has three phases, rebalance, histogramming, and move data. The general idea for this algorithm is distributing all data entries among all processors, then find the splitters for each histogram bar, in the end move data to the correct processor.</p>
+
+<h3 id="rebalance">Rebalance</h3>
+
+<p>The first phase, rebalance, will evenly redistribute all data points among all processors. If one processor has more data entries than the average, it will move data out. On the other hand, it will take data in if it has less than average data entries. MPI all-to-all is used to get the total data entries among all processors, and MPI one-side messaging is used to transfer data. The reason we have to rebalance before histogramming is simple, we want each processor to work on roughly same amount of data during histogramming phase. In this phase, data is not globally sorted, but locally sorted on each of processor at the end.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">rebalance</span><span class="p">(</span><span class="k">const</span> <span class="n">dist_sort_t</span> <span class="o">*</span><span class="k">const</span> <span class="n">data</span><span class="p">,</span> <span class="k">const</span> <span class="n">dist_sort_size_t</span> <span class="n">myDataCount</span><span class="p">,</span>
+    <span class="n">dist_sort_t</span> <span class="o">**</span><span class="n">rebalancedData</span><span class="p">,</span> <span class="n">dist_sort_size_t</span> <span class="o">*</span><span class="n">rCount</span><span class="p">)</span> <span class="p">{</span>
+
+	<span class="c1">// find total data size</span>
+	<span class="n">MPI_Allreduce</span><span class="p">(...);</span>
+
+	<span class="c1">// find average and error tolerance</span>
+	<span class="n">dist_sort_t</span> <span class="n">avg</span> <span class="o">=</span> <span class="n">total_data</span> <span class="o">/</span> <span class="n">nprocs</span><span class="p">;</span>
+	<span class="n">dist_sort_t</span> <span class="n">upper_bound</span> <span class="o">=</span> <span class="p">...</span>
+	<span class="n">dist_sort_t</span> <span class="n">lower_bound</span> <span class="o">=</span> <span class="p">...</span>
+
+	<span class="c1">// span window</span>
+	<span class="n">MPI_Win_creat</span><span class="p">(...);</span>
+
+	<span class="c1">// rebalance process</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">myDataCount</span> <span class="o">&gt;</span> <span class="n">upper_bound</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">MPI_Put</span><span class="p">(...);</span>
+	<span class="p">}</span>
+
+	<span class="c1">// prep the result array</span>
+	<span class="o">*</span><span class="n">rebalancedData</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist_sort_t</span> <span class="o">*</span><span class="p">)</span> <span class="n">malloc</span><span class="p">(...);</span>
+
+	<span class="c1">// get the data</span>
+	<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">win_size</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+		<span class="p">(</span><span class="o">*</span><span class="n">rebalancedData</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">...</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="histogramming">Histogramming</h3>
+
+<p>In the second phase, histogramming, we find the correct set of splitters for each bar of our histogram. We perform a binary search for each bar and reduce the searching range by half during each iteration. <code class="highlighter-rouge">MPI_Allreduce</code> is used to gather the global count for each histogram bar through every iteration. A while loop is introduced for iterations and will be broken once the rank 0 gets the desired splitters set and broadcasts the stop sign. In the end, rank 0 will broadcast the count of each histogram bar and all splitters to all other ranks using <code class="highlighter-rouge">MPI_Bcast</code>.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">findSplitters</span><span class="p">(</span><span class="k">const</span> <span class="n">dist_sort_t</span> <span class="o">*</span><span class="k">const</span> <span class="n">data</span><span class="p">,</span> <span class="k">const</span> <span class="n">dist_sort_size_t</span> <span class="n">data_size</span><span class="p">,</span>
+    <span class="n">dist_sort_t</span> <span class="o">*</span><span class="n">splitters</span><span class="p">,</span> <span class="n">dist_sort_size_t</span> <span class="o">*</span><span class="n">counts</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">numSplitters</span><span class="p">)</span> <span class="p">{</span>
+	
+	<span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+		<span class="c1">// get count for each histogram bar from each rank</span>
+		<span class="n">MPI_Allreduce</span><span class="p">(...);</span>
+		
+		<span class="c1">// check and move each bar</span>
+		<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numSplitters</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">upper_bound</span><span class="p">)</span> <span class="p">{</span>
+				<span class="c1">// move to left</span>
+			<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">lower_bound</span><span class="p">)</span> <span class="p">{</span>
+				<span class="c1">// move to right</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+
+		<span class="c1">// rank 0 broadcast stop signal</span>
+		<span class="n">MPI_Bcast</span><span class="p">(...);</span>
+		<span class="k">if</span> <span class="p">(...)</span> <span class="p">{</span>
+			<span class="k">break</span><span class="p">;</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h3 id="move-data">Move Data</h3>
+
+<p>The final phase, move data, where all data is moved, is the major work we have to perform for this sorting algorithm. So far, we have found the correct splitters for each histogram bar, then we can use this information to identify whether the data entry in current rank should stay or leave. If it stays, we write it to the output array, and send it out to the correct rank otherwise. Here, we have three options to move the data, either point-to-point <code class="highlighter-rouge">MPI_Send/Recv</code>, or all-to-all collective, or one-side messaging <code class="highlighter-rouge">MPI_Put/Get</code>. I first used point-to-point <code class="highlighter-rouge">MPI_Send/Recv</code> since it is annoying to calculate the displacement for <code class="highlighter-rouge">MPI_Put/Get</code>. Then, I found out that since our data size is too big, sending everything needs to go into one rank will overload the <code class="highlighter-rouge">MPI_Send/Recv</code> process. There comes two ways to resolve this, either perform a segmentation or move to other methods. I decided to move to one-side messaging since segmentation relays too much on each different MPI setting. Here, each rank spans a window, and data is put into this window from other ranks if necessary similar to what happened in the rebalance phase.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">moveData</span><span class="p">(</span><span class="k">const</span> <span class="n">dist_sort_t</span> <span class="o">*</span><span class="k">const</span> <span class="n">sendData</span><span class="p">,</span> <span class="k">const</span> <span class="n">dist_sort_size_t</span> <span class="n">sDataCount</span><span class="p">,</span>
+    <span class="n">dist_sort_t</span> <span class="o">**</span><span class="n">recvData</span><span class="p">,</span> <span class="n">dist_sort_size_t</span> <span class="o">*</span><span class="n">rDataCount</span><span class="p">,</span>
+    <span class="k">const</span> <span class="n">dist_sort_t</span> <span class="o">*</span><span class="k">const</span> <span class="n">splitters</span><span class="p">,</span> <span class="k">const</span> <span class="n">dist_sort_t</span> <span class="o">*</span><span class="k">const</span> <span class="n">counts</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">numSplitters</span><span class="p">)</span> <span class="p">{</span>
+	
+	<span class="c1">// span window</span>
+	<span class="n">MPI_Win_creat</span><span class="p">(...);</span>
+
+	<span class="c1">// loop through all data entry</span>
+	<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">sDataCount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">if</span><span class="p">(</span><span class="n">sendData</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="n">within</span> <span class="n">bar</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c1">// write to result array</span>
+			<span class="p">(</span><span class="o">*</span><span class="n">recvData</span><span class="p">)[</span><span class="o">*</span><span class="n">rDataCount</span><span class="p">]</span> <span class="o">=</span> <span class="n">sendData</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+		<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			<span class="c1">// find the correct rank</span>
+			<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="p">...</span> <span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="n">is</span> <span class="n">the</span> <span class="n">correct</span> <span class="n">rank</span><span class="p">)</span> <span class="p">{</span>
+					<span class="c1">// send to rank j</span>
+					<span class="n">MPI_Put</span><span class="p">(...);</span>
+				<span class="p">}</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="c1">// receive data from window</span>
+	<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="p">...)</span> <span class="p">{</span>
+		<span class="p">(</span><span class="o">*</span><span class="n">recvData</span><span class="p">)[</span><span class="o">*</span><span class="n">rDataCount</span><span class="p">]</span> <span class="o">=</span> <span class="p">...;</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The overall framework is set by MPI, and OpenMP comes into dividing same job into different cores to improve the performance.</p>
+
+<h2 id="the-future-of-high-performance-computing">The Future of High Performance Computing</h2>
+
+<p>Generally speaking, high performance programming and parallel programming is the way we will go in the future, but I am afraid there is still a lot of work to be done in this field to even full utilize the power we have right now. Considering the hardware development has not slower down dramatically, we probably will have to wait for several years until major research attention is drawn to this area of computing.</p>
+
+<hr />
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:1">
+      <p>A correct result in parallel programming means it produces the identical result as if it runs under sequential programming. <a href="#fnref:1" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:2">
+      <p>General idea in this <a href="https://charm.cs.illinois.edu/newPapers/93-01/paper.pdf">paper</a> and optimization in this <a href="https://arxiv.org/pdf/1803.01237.pdf">paper</a>. <a href="#fnref:2" class="reversefootnote">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+          </div>
+			<!--
+          <div class="article-share">
+            
+            
+
+			<a href="https://twitter.com/share?url=High+Performance+Programming+with+MPI+and+OpenMP - https://gabrielchen.com/hamiltonian//hamiltonian/posts/high-performance-programming-with-mpi-and-openmp" data-lang="en" data-dnt="true" data-show-count="false">
+			<svg class="svg-icon" viewBox="0 0 20 20">
+							<path d="M18.258,3.266c-0.693,0.405-1.46,0.698-2.277,0.857c-0.653-0.686-1.586-1.115-2.618-1.115c-1.98,0-3.586,1.581-3.586,3.53c0,0.276,0.031,0.545,0.092,0.805C6.888,7.195,4.245,5.79,2.476,3.654C2.167,4.176,1.99,4.781,1.99,5.429c0,1.224,0.633,2.305,1.596,2.938C2.999,8.349,2.445,8.19,1.961,7.925C1.96,7.94,1.96,7.954,1.96,7.97c0,1.71,1.237,3.138,2.877,3.462c-0.301,0.08-0.617,0.123-0.945,0.123c-0.23,0-0.456-0.021-0.674-0.062c0.456,1.402,1.781,2.422,3.35,2.451c-1.228,0.947-2.773,1.512-4.454,1.512c-0.291,0-0.575-0.016-0.855-0.049c1.588,1,3.473,1.586,5.498,1.586c6.598,0,10.205-5.379,10.205-10.045c0-0.153-0.003-0.305-0.01-0.456c0.7-0.499,1.308-1.12,1.789-1.827c-0.644,0.28-1.334,0.469-2.06,0.555C17.422,4.782,17.99,4.091,18.258,3.266"></path>
+						</svg>
+			</a>
+
+			<a href="">
+				<svg class="svg-icon" viewBox="0 0 20 20">
+							<path fill="none" d="M4.3,15.249H3.428c-0.241,0-0.436,0.195-0.436,0.436c0,0.241,0.195,0.437,0.436,0.437H4.3c0.241,0,0.436-0.195,0.436-0.437C4.736,15.444,4.541,15.249,4.3,15.249 M6.916,15.249H6.044c-0.241,0-0.436,0.195-0.436,0.436c0,0.241,0.195,0.437,0.436,0.437h0.872c0.241,0,0.436-0.195,0.436-0.437C7.352,15.444,7.157,15.249,6.916,15.249 M13.894,8.271h0.872c0.241,0,0.437-0.195,0.437-0.437c0-0.241-0.195-0.436-0.437-0.436h-0.872c-0.241,0-0.437,0.194-0.437,0.436C13.457,8.077,13.652,8.271,13.894,8.271 M4.3,7.399H3.428c-0.241,0-0.436,0.194-0.436,0.436c0,0.242,0.195,0.437,0.436,0.437H4.3c0.241,0,0.436-0.195,0.436-0.437C4.736,7.594,4.541,7.399,4.3,7.399 M15.638,11.324c-0.241,0-0.436,0.194-0.436,0.436s0.194,0.437,0.436,0.437s0.437-0.195,0.437-0.437S15.879,11.324,15.638,11.324 M14.766,15.249h-0.872c-0.241,0-0.437,0.195-0.437,0.436c0,0.241,0.195,0.437,0.437,0.437h0.872c0.241,0,0.437-0.195,0.437-0.437C15.202,15.444,15.007,15.249,14.766,15.249 M12.149,7.399h-0.872c-0.241,0-0.437,0.194-0.437,0.436c0,0.242,0.195,0.437,0.437,0.437h0.872c0.24,0,0.436-0.195,0.436-0.437C12.585,7.594,12.39,7.399,12.149,7.399 M17.818,9.144V5.655c0-0.939-0.745-1.7-1.676-1.737l-0.104-0.859L9.276,3.88L2.824,2.151l-0.471,1.76H2.119c-0.963,0-1.744,0.781-1.744,1.744v10.466c0,0.963,0.781,1.744,1.744,1.744h13.955c0.963,0,1.744-0.781,1.744-1.744v-1.744c0.963,0,1.744-0.781,1.744-1.745v-1.744C19.562,9.925,18.781,9.144,17.818,9.144 M16.946,5.655v0.242c-0.18-0.104-0.377-0.178-0.589-0.213L16.25,4.801C16.646,4.882,16.946,5.234,16.946,5.655 M15.277,4.029l0.184,1.507l-3.929-1.052L15.277,4.029z M3.44,3.219l9.09,2.436H2.788L3.44,3.219z M1.247,5.655c0-0.481,0.39-0.872,0.871-0.872l-0.24,0.896C1.65,5.711,1.438,5.786,1.247,5.897V5.655z M16.946,16.121c0,0.48-0.392,0.872-0.872,0.872H2.119c-0.482,0-0.872-0.392-0.872-0.872V7.399c0-0.481,0.39-0.872,0.872-0.872h13.955c0.48,0,0.872,0.391,0.872,0.872v1.744h-1.744c-0.964,0-1.745,0.781-1.745,1.744v1.744c0,0.964,0.781,1.745,1.745,1.745h1.744V16.121z M18.69,12.632c0,0.481-0.392,0.873-0.872,0.873h-2.616c-0.482,0-0.873-0.392-0.873-0.873v-1.744c0-0.481,0.391-0.872,0.873-0.872h2.616c0.48,0,0.872,0.391,0.872,0.872V12.632z M12.149,15.249h-0.872c-0.241,0-0.437,0.195-0.437,0.436c0,0.241,0.195,0.437,0.437,0.437h0.872c0.24,0,0.436-0.195,0.436-0.437C12.585,15.444,12.39,15.249,12.149,15.249 M9.533,15.249H8.661c-0.241,0-0.436,0.195-0.436,0.436c0,0.241,0.195,0.437,0.436,0.437h0.872c0.241,0,0.436-0.195,0.436-0.437C9.969,15.444,9.774,15.249,9.533,15.249 M6.916,7.399H6.044c-0.241,0-0.436,0.194-0.436,0.436c0,0.242,0.195,0.437,0.436,0.437h0.872c0.241,0,0.436-0.195,0.436-0.437C7.352,7.594,7.157,7.399,6.916,7.399 M9.533,7.399H8.661c-0.241,0-0.436,0.194-0.436,0.436c0,0.242,0.195,0.437,0.436,0.437h0.872c0.241,0,0.436-0.195,0.436-0.437C9.969,7.594,9.774,7.399,9.533,7.399"></path>
+						</svg>
+			</a>
+
+
+            <a href="https://www.facebook.com/sharer/sharer.php?u=https://gabrielchen.com/hamiltonian//hamiltonian/posts/high-performance-programming-with-mpi-and-openmp" title="Share on Facebook" rel="noreferrer noopener" target="_blank">
+              <svg viewBox="0 0 512 512"><path d="M288 192v-38.1c0-17.2 3.8-25.9 30.5-25.9H352V64h-55.9c-68.5 0-91.1 31.4-91.1 85.3V192h-45v64h45v192h83V256h56.4l7.6-64H288z"/></svg>
+            </a>
+          </div>
+			-->
+
+        </article>
+		<script src="https://utteranc.es/client.js"
+        repo="gabriel-chen/gabriel-chen.github.io"
+        issue-term="title"
+        theme="boxy-light"
+        crossorigin="anonymous"
+        async>
+</script>
+        <footer class="footer scrollappear">
+<center>
+ <p>2023 &copy; Gabriel Chen</p>
+ </center>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  
+
+<script src="/hamiltonian/assets/vendor-1a8f6e33220f845e569c20b3c09a5d43f87908ea7168ea139ce2135770f7b1b5.js" type="text/javascript"></script>
+
+
+  <script src="/hamiltonian/assets/webfonts-96493456d319d1bf419afdf8701552d4d486fee6afd304897d4fd81eb4e0cc0b.js" type="text/javascript"></script>
+
+
+
+  <script src="/hamiltonian/assets/scrollappear-e2da8ea567e418637e31266cc5302126eaa79f62a2273739086358b589a89ee6.js" type="text/javascript"></script>
+
+
+<script src="/hamiltonian/assets/application-cfde13ac81ddaf4351b2e739603e2baf688d0fcc9aba613fe62bbb1c7b037fb9.js" type="text/javascript"></script>
+
+
+  <script src="/hamiltonian/assets/themetoggle-df0d3d73164dc26dffbd630182ae4d0dfa7bee6b694a2b5d565d73595b582bbf.js" type="text/javascript"></script>
+
+</body>
+</html>

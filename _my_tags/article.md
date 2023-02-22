@@ -1,4 +1,0 @@
----
-slug: article
-name: Article
----

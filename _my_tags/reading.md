@@ -1,4 +1,0 @@
----
-slug: reading
-name: Reading
----

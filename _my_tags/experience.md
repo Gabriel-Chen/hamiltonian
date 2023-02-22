@@ -1,4 +1,0 @@
----
-slug: experience
-name: Experience
----

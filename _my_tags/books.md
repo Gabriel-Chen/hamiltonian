@@ -1,4 +1,0 @@
----
-slug: books
-name: Books
----
