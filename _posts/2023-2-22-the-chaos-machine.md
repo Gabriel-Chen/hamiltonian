@@ -1,8 +1,8 @@
 ---
 layout: post
 title: The Chaos Machine - How Social Medias Are Shaping Our World
-date: 2020-5-29
-description: Recently, I read a book called *The Chaos Machine: The Inside Story of How Social Media Rewired Our Minds and Our World*. This is a book discusses how social medias, such as Facebook, TikTok, and Twitter, have been shaping the way people live their lives. More importantly, they are influencing how people think.
+date: 2023-2-22
+description: Recently, I read a book called The Chaos Machine The Inside Story of How Social Media Rewired Our Minds and Our World. This is a book discusses how social medias, such as Facebook, TikTok, and Twitter, have been shaping the way people live their lives. More importantly, they are influencing how people think.
 tags: [article, books, reading]
 author: Gabriel Chen
 ---
