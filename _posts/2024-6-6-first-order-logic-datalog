@@ -1,0 +1,12 @@
+layout: post
+title: First Order Logic with Datalog
+date: 2023-2-22
+description: Lately, I have been exposed to a language called Datalog, which is a language constructed quite similar to logic sentences.
+tags: [article, computer science, mathematics]
+author: Gabriel Chen
+
+Lately, I have been exposed to a language called Datalog, which is a language constructed quite similar to logic sentences. The motivation of Datalog is avoiding expensive logic clauses performed on massive dataset using languages such as SQL. It was introduced as an extension of Prolog which acts as a set of filter rules govern the dataset.
+
+## Semantics Construction
+
+The rules constructed by Datalog is based on logic sentences. The base semantics for each Datalog sentence is the following.
